@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgentBridge - AI智能助手</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI','Microsoft YaHei',sans-serif;background:#f0f2f5;color:#333;}
+.header{background:linear-gradient(135deg,#1a73e8,#0d47a1);color:#fff;padding:16px 32px;display:flex;justify-content:space-between;align-items:center;}
+.header h1{font-size:22px;font-weight:600;}
+.header .badge{background:rgba(255,255,255,0.2);padding:4px 12px;border-radius:12px;font-size:12px;}
+.container{display:flex;height:calc(100vh - 64px);}
+.sidebar{width:220px;background:#fff;padding:16px 0;border-right:1px solid #e0e0e0;}
+.sidebar .nav-item{padding:12px 24px;cursor:pointer;display:flex;align-items:center;gap:10px;font-size:14px;color:#555;transition:all 0.2s;border-left:3px solid transparent;}
+.sidebar .nav-item:hover,.sidebar .nav-item.active{background:#e8f0fe;color:#1a73e8;border-left-color:#1a73e8;}
+.sidebar .nav-item .icon{font-size:18px;}
+.main{flex:1;overflow-y:auto;padding:24px;}
+.panel{display:none;background:#fff;border-radius:8px;padding:24px;box-shadow:0 1px 3px rgba(0,0,0,0.1);}
+.panel.active{display:block;}
+.panel h2{font-size:20px;margin-bottom:20px;color:#1a73e8;border-bottom:2px solid #e8f0fe;padding-bottom:10px;}
+.chat-panel{width:420px;background:#fff;display:flex;flex-direction:column;border-left:1px solid #e0e0e0;}
+.chat-panel h3{padding:16px 20px;background:#1a73e8;color:#fff;font-size:16px;}
+.chat-messages{flex:1;overflow-y:auto;padding:16px;}
+.chat-messages .msg{margin-bottom:12px;max-width:90%;padding:10px 14px;border-radius:12px;font-size:14px;line-height:1.6;white-space:pre-wrap;word-break:break-word;}
+.chat-messages .msg.user{background:#e8f0fe;margin-left:auto;border-bottom-right-radius:4px;}
+.chat-messages .msg.assistant{background:#f5f5f5;border-bottom-left-radius:4px;}
+.chat-messages .msg.loading{background:#f5f5f5;border-bottom-left-radius:4px;color:#999;font-style:italic;}
+.chat-input{padding:12px 16px;border-top:1px solid #e0e0e0;display:flex;gap:8px;}
+.chat-input input{flex:1;padding:10px 14px;border:1px solid #ddd;border-radius:20px;font-size:14px;outline:none;}
+.chat-input input:focus{border-color:#1a73e8;}
+.chat-input button{background:#1a73e8;color:#fff;border:none;padding:10px 20px;border-radius:20px;cursor:pointer;font-size:14px;}
+.chat-input button:hover{background:#1557b0;}
+.chat-input button:disabled{background:#ccc;cursor:not-allowed;}
+table{width:100%;border-collapse:collapse;margin-top:12px;}
+th{background:#f0f5ff;padding:10px 12px;text-align:left;font-size:13px;color:#555;font-weight:600;}
+td{padding:10px 12px;border-bottom:1px solid #f0f0f0;font-size:13px;}
+tr:hover{background:#fafbfc;}
+.badge-status{padding:2px 10px;border-radius:10px;font-size:12px;font-weight:500;}
+.badge-pending{background:#fff3e0;color:#e65100;}
+.badge-approved{background:#e8f5e9;color:#2e7d32;}
+.badge-rejected{background:#fce4ec;color:#c62828;}
+.form-group{margin-bottom:16px;}
+.form-group label{display:block;margin-bottom:6px;font-size:14px;font-weight:500;color:#555;}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-size:14px;font-family:inherit;}
+.form-group textarea{resize:vertical;min-height:80px;}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:#1a73e8;outline:none;}
+.btn{padding:8px 20px;border:none;border-radius:6px;cursor:pointer;font-size:14px;font-weight:500;transition:all 0.2s;}
+.btn-primary{background:#1a73e8;color:#fff;}
+.btn-primary:hover{background:#1557b0;}
+.btn-success{background:#2e7d32;color:#fff;}
+.btn-danger{background:#c62828;color:#fff;}
+.btn-outline{background:transparent;border:1px solid #1a73e8;color:#1a73e8;}
+.btn-outline:hover{background:#e8f0fe;}
+.btn-sm{padding:4px 12px;font-size:12px;}
+.btn-group{display:flex;gap:8px;margin-top:12px;}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+.stat-card{background:#fff;border-radius:8px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.1);text-align:center;}
+.stat-card .number{font-size:32px;font-weight:700;color:#1a73e8;}
+.stat-card .label{font-size:13px;color:#888;margin-top:4px;}
+.anomaly-row{background:#fff3e0!important;}
+.anomaly-badge{background:#e65100;color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;}
+</style>
+</head>
+<body>
+<div class="header">
+<h1>AgentBridge</h1>
+<div class="badge">🤖 AI Agent 已就绪</div>
+</div>
+<div class="container">
+<div class="sidebar">
+<div class="nav-item active" data-panel="dashboard" onclick="switchPanel('dashboard')"><span class="icon">📊</span>控制台</div>
+<div class="nav-item" data-panel="leave" onclick="switchPanel('leave')"><span class="icon">📋</span>请假管理</div>
+<div class="nav-item" data-panel="expense" onclick="switchPanel('expense')"><span class="icon">💰</span>报销管理</div>
+<div class="nav-item" data-panel="meeting" onclick="switchPanel('meeting')"><span class="icon">🏠</span>会议室预定</div>
+<div class="nav-item" data-panel="announcement" onclick="switchPanel('announcement')"><span class="icon">📢</span>公司公告</div>
+</div>
+<div class="main">
+<div class="panel active" id="dashboard">
+<h2>📊 控制台</h2>
+<div class="stat-grid" id="statGrid">
+<div class="stat-card"><div class="number" id="statLeaves">-</div><div class="label">待审批请假</div></div>
+<div class="stat-card"><div class="number" id="statExpenses">-</div><div class="label">待审批报销</div></div>
+<div class="stat-card"><div class="number" id="statRooms">-</div><div class="label">可用会议室</div></div>
+<div class="stat-card"><div class="number" id="statAnnouncements">-</div><div class="label">最新公告</div></div>
+</div>
+<div style="background:#e8f0fe;border-radius:8px;padding:20px;margin-bottom:16px;">
+<h3 style="color:#1a73e8;margin-bottom:8px;">🤖 AI智能助手功能概览</h3>
+<p style="color:#555;line-height:1.8;">
+✅ <b>智能问答</b>：自然语言查询公司制度、请假状态、报销进度<br>
+✅ <b>自动审批</b>：AI分析申请风险，辅助审批决策<br>
+✅ <b>异常检测</b>：智能识别报销异常，防范财务风险<br>
+✅ <b>一键创建</b>：通过对话即可创建各类申请
+</p>
+</div>
+<div style="background:#fff;border-radius:8px;padding:20px;border:1px solid #e0e0e0;">
+<h3 style="color:#555;margin-bottom:12px;">快速操作</h3>
+<div class="btn-group">
+<button class="btn btn-primary" onclick="switchPanel('leave')">📋 提交请假申请</button>
+<button class="btn btn-primary" onclick="switchPanel('expense')">💰 提交报销申请</button>
+<button class="btn btn-outline" onclick="switchPanel('meeting')">🏠 预定会议室</button>
+</div>
+</div>
+</div>
+
+<div class="panel" id="leave">
+<h2>📋 请假管理</h2>
+<div style="margin-bottom:16px;">
+<button class="btn btn-primary" onclick="document.getElementById('leaveForm').style.display='block'">+ 新建请假申请</button>
+<button class="btn btn-outline" onclick="loadLeaves()">🔄 刷新</button>
+</div>
+<div id="leaveForm" style="display:none;background:#fafbfc;border-radius:8px;padding:20px;margin-bottom:16px;">
+<h4 style="margin-bottom:12px;">新建请假申请</h4>
+<div class="form-group"><label>申请人</label><input id="leaveApplicant" placeholder="张三"></div>
+<div class="form-group"><label>部门</label><input id="leaveDept" placeholder="技术研发部"></div>
+<div class="form-group"><label>请假类型</label><select id="leaveType"><option>年假</option><option>病假</option><option>事假</option><option>婚假</option><option>产假</option></select></div>
+<div class="form-group"><label>开始日期</label><input type="date" id="leaveStart"></div>
+<div class="form-group"><label>结束日期</label><input type="date" id="leaveEnd"></div>
+<div class="form-group"><label>请假原因</label><textarea id="leaveReason"></textarea></div>
+<button class="btn btn-primary" onclick="createLeave()">提交申请</button>
+<button class="btn btn-outline" onclick="document.getElementById('leaveForm').style.display='none'">取消</button>
+</div>
+<div id="leaveTable"></div>
+</div>
+
+<div class="panel" id="expense">
+<h2>💰 报销管理</h2>
+<div style="margin-bottom:16px;">
+<button class="btn btn-primary" onclick="document.getElementById('expenseForm').style.display='block'">+ 新建报销申请</button>
+<button class="btn btn-outline" onclick="loadExpenses()">🔄 刷新</button>
+<button class="btn btn-outline" onclick="analyzeExpenses()">🔍 AI分析异常</button>
+</div>
+<div id="expenseForm" style="display:none;background:#fafbfc;border-radius:8px;padding:20px;margin-bottom:16px;">
+<h4 style="margin-bottom:12px;">新建报销申请</h4>
+<div class="form-group"><label>申请人</label><input id="expApplicant" placeholder="张三"></div>
+<div class="form-group"><label>部门</label><input id="expDept" placeholder="技术研发部"></div>
+<div class="form-group"><label>报销类别</label><select id="expCategory"><option>差旅费</option><option>办公用品</option><option>业务招待费</option><option>培训费</option><option>交通费</option></select></div>
+<div class="form-group"><label>金额（元）</label><input type="number" id="expAmount" placeholder="0.00" step="0.01"></div>
+<div class="form-group"><label>说明</label><textarea id="expDesc"></textarea></div>
+<button class="btn btn-primary" onclick="createExpense()">提交申请</button>
+<button class="btn btn-outline" onclick="document.getElementById('expenseForm').style.display='none'">取消</button>
+</div>
+<div id="expenseTable"></div>
+<div id="analysisResult" style="display:none;margin-top:16px;background:#fffbe6;border-radius:8px;padding:16px;"></div>
+</div>
+
+<div class="panel" id="meeting">
+<h2>🏠 会议室预定</h2>
+<div style="margin-bottom:16px;">
+<button class="btn btn-outline" onclick="loadMeetingRooms()">🔄 刷新</button>
+</div>
+<div id="roomsTable"></div>
+</div>
+
+<div class="panel" id="announcement">
+<h2>📢 公司公告</h2>
+<div style="margin-bottom:16px;">
+<button class="btn btn-outline" onclick="loadAnnouncements()">🔄 刷新</button>
+</div>
+<div id="announcementList"></div>
+</div>
+</div>
+
+<div class="chat-panel">
+<h3>🤖 AI智能助手</h3>
+<div class="chat-messages" id="chatMessages">
+<div class="msg assistant">你好！我是 AgentBridge 的 AI 助手，可以帮你：
+• 查询请假/报销状态
+• 创建请假/报销申请
+• 查询会议室和公告
+• 解答公司制度问题
+
+请问有什么可以帮你的？</div>
+</div>
+<div class="chat-input">
+<input type="text" id="chatInput" placeholder="输入你的问题..." onkeypress="if(event.key==='Enter')sendMessage()">
+<button onclick="sendMessage()">发送</button>
+</div>
+</div>
+</div>
+
+<script>
+const API = '';
+
+function switchPanel(name){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById(name).classList.add('active');
+  document.querySelector(`[data-panel="${name}"]`).classList.add('active');
+  if(name==='dashboard') loadDashboard();
+  else if(name==='leave') loadLeaves();
+  else if(name==='expense') loadExpenses();
+  else if(name==='meeting') loadMeetingRooms();
+  else if(name==='announcement') loadAnnouncements();
+}
+
+async function loadDashboard(){
+  try{
+    let [leaves,expenses,rooms,announcements]=await Promise.all([
+      fetch(API+'/api/leave/?status=待审批').then(r=>r.json()),
+      fetch(API+'/api/expense/?status=待审批').then(r=>r.json()),
+      fetch(API+'/api/meeting/rooms').then(r=>r.json()),
+      fetch(API+'/api/announcement/').then(r=>r.json()),
+    ]);
+    document.getElementById('statLeaves').textContent=leaves.length;
+    document.getElementById('statExpenses').textContent=expenses.length;
+    document.getElementById('statRooms').textContent=rooms.filter(r=>r.is_available).length;
+    document.getElementById('statAnnouncements').textContent=announcements.length;
+  }catch(e){console.error(e);}
+}
+
+async function loadLeaves(){
+  try{
+    let data=await fetch(API+'/api/leave/').then(r=>r.json());
+    let html='<table><tr><th>ID</th><th>申请人</th><th>部门</th><th>类型</th><th>开始</th><th>结束</th><th>原因</th><th>状态</th></tr>';
+    data.forEach(l=>{html+=`<tr><td>${l.id}</td><td>${l.applicant}</td><td>${l.department}</td><td>${l.leave_type}</td><td>${l.start_date?l.start_date.slice(0,10):''}</td><td>${l.end_date?l.end_date.slice(0,10):''}</td><td>${l.reason}</td><td><span class="badge-status ${l.status==='待审批'?'badge-pending':l.status==='已通过'?'badge-approved':'badge-rejected'}">${l.status}</span>${l.agent_suggestion?`<br><small>🤖 ${l.agent_suggestion}</small>`:''}</td></tr>`;});
+    html+='</table>';
+    document.getElementById('leaveTable').innerHTML=data.length?html:'<p style="color:#999;">暂无请假记录</p>';
+  }catch(e){console.error(e);}
+}
+
+async function createLeave(){
+  let body={
+    applicant:document.getElementById('leaveApplicant').value,
+    department:document.getElementById('leaveDept').value,
+    leave_type:document.getElementById('leaveType').value,
+    start_date:document.getElementById('leaveStart').value+'T00:00:00',
+    end_date:document.getElementById('leaveEnd').value+'T00:00:00',
+    reason:document.getElementById('leaveReason').value,
+  };
+  try{
+    let res=await fetch(API+'/api/leave/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(res.ok){alert('请假申请已创建！');document.getElementById('leaveForm').style.display='none';loadLeaves();loadDashboard();}
+    else{alert('创建失败');}
+  }catch(e){console.error(e);}
+}
+
+async function loadExpenses(){
+  try{
+    let data=await fetch(API+'/api/expense/').then(r=>r.json());
+    let html='<table><tr><th>ID</th><th>申请人</th><th>部门</th><th>类别</th><th>金额</th><th>描述</th><th>状态</th></tr>';
+    data.forEach(e=>{html+=`<tr class="${e.anomaly_flag?'anomaly-row':''}"><td>${e.id}</td><td>${e.applicant}</td><td>${e.department}</td><td>${e.category}</td><td>¥${e.amount.toFixed(2)}</td><td>${e.description}</td><td><span class="badge-status ${e.status==='待审批'?'badge-pending':e.status==='已通过'?'badge-approved':'badge-rejected'}">${e.status}</span>${e.anomaly_flag?` <span class="anomaly-badge">异常</span>`:''}</td></tr>`;});
+    html+='</table>';
+    document.getElementById('expenseTable').innerHTML=data.length?html:'<p style="color:#999;">暂无报销记录</p>';
+  }catch(e){console.error(e);}
+}
+
+async function createExpense(){
+  let body={
+    applicant:document.getElementById('expApplicant').value,
+    department:document.getElementById('expDept').value,
+    category:document.getElementById('expCategory').value,
+    amount:parseFloat(document.getElementById('expAmount').value),
+    description:document.getElementById('expDesc').value,
+  };
+  try{
+    let res=await fetch(API+'/api/expense/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(res.ok){alert('报销申请已创建！');document.getElementById('expenseForm').style.display='none';loadExpenses();loadDashboard();}
+    else{alert('创建失败');}
+  }catch(e){console.error(e);}
+}
+
+async function analyzeExpenses(){
+  try{
+    let res=await fetch(API+'/api/agent/expense/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({})});
+    let data=await res.json();
+    let div=document.getElementById('analysisResult');
+    div.style.display='block';
+    div.innerHTML=`<h4>🔍 AI分析结果</h4><p><b>摘要：</b>${data.summary||'无'}</p>`;
+    if(data.anomalies&&data.anomalies.length)div.innerHTML+=`<p><b>异常项：</b>${data.anomalies.map(a=>`#${a.id}:${a.reason}`).join('<br>')}</p>`;
+    if(data.suggestions)div.innerHTML+=`<p><b>建议：</b>${data.suggestions}</p>`;
+    loadExpenses();
+  }catch(e){console.error(e);}
+}
+
+async function loadMeetingRooms(){
+  try{
+    let data=await fetch(API+'/api/meeting/rooms').then(r=>r.json());
+    let html='<table><tr><th>ID</th><th>名称</th><th>容量</th><th>位置</th><th>设备</th><th>状态</th></tr>';
+    data.forEach(r=>{html+=`<tr><td>${r.id}</td><td>${r.name}</td><td>${r.capacity}人</td><td>${r.location}</td><td>${r.equipment||'无'}</td><td>${r.is_available?'✅可用':'❌不可用'}</td></tr>`;});
+    html+='</table>';
+    document.getElementById('roomsTable').innerHTML=html;
+  }catch(e){console.error(e);}
+}
+
+async function loadAnnouncements(){
+  try{
+    let data=await fetch(API+'/api/announcement/').then(r=>r.json());
+    let html='';
+    data.forEach(a=>{html+=`<div style="background:#fafbfc;border-radius:8px;padding:16px;margin-bottom:12px;${a.is_pinned?'border-left:3px solid #1a73e8;':''}"><h4 style="color:#1a73e8;">${a.is_pinned?'📌 ':''}${a.title}</h4><p style="margin:8px 0;color:#555;">${a.content}</p><small style="color:#999;">发布者：${a.publisher}</small></div>`;});
+    document.getElementById('announcementList').innerHTML=data.length?html:'<p style="color:#999;">暂无公告</p>';
+  }catch(e){console.error(e);}
+}
+
+async function sendMessage(){
+  let input=document.getElementById('chatInput');
+  let msg=input.value.trim();
+  if(!msg)return;
+  input.value='';
+  let container=document.getElementById('chatMessages');
+  container.innerHTML+=`<div class="msg user">${escapeHtml(msg)}</div>`;
+  container.innerHTML+=`<div class="msg loading">🤔 正在思考...</div>`;
+  container.scrollTop=container.scrollHeight;
+
+  try{
+    let res=await fetch(API+'/api/agent/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:msg,history:[]})});
+    let loadingEl=document.querySelector('.msg.loading');
+    if(loadingEl) loadingEl.remove();
+    if(!res.ok){
+      let errText=await res.text();
+      throw new Error('服务器错误('+res.status+'): '+errText.slice(0,80));
+    }
+    let data=await res.json();
+    container.innerHTML+=`<div class="msg assistant">${escapeHtml(data.response)}</div>`;
+    container.scrollTop=container.scrollHeight;
+    loadDashboard();
+  }catch(e){
+    let loadingEl=document.querySelector('.msg.loading');
+    if(loadingEl) loadingEl.remove();
+    container.innerHTML+=`<div class="msg assistant">抱歉，请求失败：${escapeHtml(e.message)}。请检查网络或稍后重试。</div>`;
+    container.scrollTop=container.scrollHeight;
+  }
+}
+
+function escapeHtml(text){
+  let div=document.createElement('div');
+  div.textContent=text;
+  return div.innerHTML;
+}
+
+loadDashboard();
+</script>
+</body>
+</html>

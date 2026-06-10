@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.env
+*.db
+venv/
+.venv/
+chroma_db/
+chroma_db_knowledge/
+logs/
+.DS_Store
+*.log

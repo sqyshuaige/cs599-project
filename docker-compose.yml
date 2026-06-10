@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  oa-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: smart-oa-agent
+    ports:
+      - "8000:8000"
+    environment:
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
+      - DEEPSEEK_BASE_URL=${DEEPSEEK_BASE_URL:-https://api.deepseek.com}
+    volumes:
+      - oa_data:/app/data
+      - oa_logs:/app/logs
+      - oa_chroma:/app/chroma_db_knowledge
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+
+volumes:
+  oa_data:
+    driver: local
+  oa_logs:
+    driver: local
+  oa_chroma:
+    driver: local
