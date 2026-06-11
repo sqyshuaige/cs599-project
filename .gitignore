@@ -7,6 +7,7 @@ venv/
 .venv/
 chroma_db/
 chroma_db_knowledge/
+data/
 logs/
 .DS_Store
 *.log

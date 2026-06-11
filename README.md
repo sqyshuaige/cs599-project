@@ -69,23 +69,23 @@ cs599-project/
 │   │   │   ├── main.py              # FastAPI 入口 + 中间件注册 + 健康检查/指标端点
 │   │   │   ├── config.py            # Pydantic Settings 环境变量配置
 │   │   │   ├── database.py          # SQLAlchemy 数据库连接
-│   │   ├── models.py            # 5张数据表 ORM 模型
-│   │   ├── seed.py              # 种子测试数据
-│   │   ├── mcp_server.py        # MCP协议服务端（9工具，stdio传输）
-│   │   ├── security.py          # 速率限制 + PromptInjection + 安全头
-│   │   ├── observability.py     # 日志 + Token追踪 + 健康检查
-│   │   ├── agents/
+│   │   │   ├── models.py            # 5张数据表 ORM 模型
+│   │   │   ├── seed.py              # 种子测试数据
+│   │   │   ├── mcp_server.py        # MCP协议服务端（9工具，stdio传输）
+│   │   │   ├── security.py          # 速率限制 + PromptInjection + 安全头
+│   │   │   ├── observability.py     # 日志 + Token追踪 + 健康检查
+│   │   │   ├── agents/
 │   │   │   ├── oa_agent.py      # OA对话Agent (Function Calling)
 │   │   │   ├── rag_agent.py     # RAG知识库Agent (ChromaDB + Embedding)
 │   │   │   ├── approval_graph.py # 审批Agent (LangGraph 四步状态机)
 │   │   │   └── expense_agent.py # 报销异常分析Agent
-│   │   └── routers/
-│   │       ├── leave.py         # 请假CRUD API
-│   │       ├── expense.py       # 报销CRUD API
-│   │       ├── meeting.py       # 会议室API
-│   │       ├── announcement.py  # 公告API
-│   │   └── agent.py         # Agent API（含安全检测 + Token追踪）
-│   └── requirements.txt
+│   │   │   └── routers/
+│   │   │       ├── leave.py     # 请假CRUD API
+│   │   │       ├── expense.py   # 报销CRUD API
+│   │   │       ├── meeting.py   # 会议室API
+│   │   │       ├── announcement.py  # 公告API
+│   │   │       └── agent.py     # Agent API（含安全检测 + Token追踪）
+│   │   └── requirements.txt
 │   ├── frontend/
 │   │   └── index.html           # SPA 单页应用
 │   └── tests/
