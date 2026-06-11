@@ -11,9 +11,9 @@ def test_health():
     from fastapi.testclient import TestClient
     from app.main import app
     client = TestClient(app)
-    response = client.get("/")
+    response = client.get("/health")
     assert response.status_code == 200
-    assert "AgentBridge" in response.json()["message"]
+    assert "version" in response.json()
 
 
 def test_create_leave():
