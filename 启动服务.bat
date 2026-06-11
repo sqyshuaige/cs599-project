@@ -7,7 +7,7 @@ echo     AgentBridge - 智慧OA系统Agent智能化改造
 echo ===========================================
 echo.
 echo [1/3] 正在安装依赖...
-cd /d "%~dp0backend"
+cd /d "%~dp0src\backend"
 pip install -r requirements.txt -q 2>nul
 echo        ✅ 依赖安装完成
 echo.

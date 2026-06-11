@@ -2,7 +2,7 @@
 FROM python:3.11-slim AS builder
 
 WORKDIR /app
-COPY backend/requirements.txt .
+COPY src/backend/requirements.txt .
 RUN pip install --no-cache-dir --user -r requirements.txt
 
 # ---- 运行阶段 ----
@@ -17,7 +17,7 @@ RUN groupadd -r oa && useradd -r -g oa oa
 COPY --from=builder /root/.local /home/oa/.local
 
 # 复制应用代码
-COPY backend/ .
+COPY src/backend/ .
 
 # 创建必要目录
 RUN mkdir -p /app/data /app/logs /app/chroma_db_knowledge && \

@@ -43,9 +43,9 @@
 ### 本地启动
 
 ```bash
-cd smart-oa-agent/backend
+cd cs599-project/src/backend
 pip install -r requirements.txt
-copy ..\.env.example .env          # 编辑 .env 填入 DEEPSEEK_API_KEY
+copy ..\..\.env.example .env          # 编辑 .env 填入 DEEPSEEK_API_KEY
 python -m uvicorn app.main:app --reload --port 8000
 ```
 浏览器打开 `http://127.0.0.1:8000`
@@ -53,7 +53,7 @@ python -m uvicorn app.main:app --reload --port 8000
 ### Docker 一键部署
 
 ```bash
-cd smart-oa-agent
+cd cs599-project
 echo "DEEPSEEK_API_KEY=sk-xxx" > .env
 docker compose up -d --build
 curl http://localhost:8000/health
@@ -62,12 +62,13 @@ curl http://localhost:8000/health
 ## 项目结构
 
 ```
-smart-oa-agent/
-├── backend/
-│   ├── app/
-│   │   ├── main.py              # FastAPI 入口 + 中间件注册 + 健康检查/指标端点
-│   │   ├── config.py            # Pydantic Settings 环境变量配置
-│   │   ├── database.py          # SQLAlchemy 数据库连接
+cs599-project/
+├── src/
+│   ├── backend/
+│   │   ├── app/
+│   │   │   ├── main.py              # FastAPI 入口 + 中间件注册 + 健康检查/指标端点
+│   │   │   ├── config.py            # Pydantic Settings 环境变量配置
+│   │   │   ├── database.py          # SQLAlchemy 数据库连接
 │   │   ├── models.py            # 5张数据表 ORM 模型
 │   │   ├── seed.py              # 种子测试数据
 │   │   ├── mcp_server.py        # MCP协议服务端（9工具，stdio传输）
@@ -83,17 +84,19 @@ smart-oa-agent/
 │   │       ├── expense.py       # 报销CRUD API
 │   │       ├── meeting.py       # 会议室API
 │   │       ├── announcement.py  # 公告API
-│   │       └── agent.py         # Agent API（含安全检测 + Token追踪）
+│   │   └── agent.py         # Agent API（含安全检测 + Token追踪）
 │   └── requirements.txt
-├── frontend/
-│   └── index.html               # SPA 单页应用
-├── docs/                        # 7章课程报告 + 5张架构图PNG + 部署文档
-├── specs/                       # SDD三层规格文档
-├── tests/
-│   └── test_api.py              # 7个pytest自动化测试用例
+│   ├── frontend/
+│   │   └── index.html           # SPA 单页应用
+│   └── tests/
+│       └── test_api.py          # 7个pytest自动化测试用例
+├── docs/
+│   ├── CS599_大作业报告.pdf      # 最终提交报告
+│   └── specs/                   # SDD三层规格文档
 ├── Dockerfile                   # 多阶段构建 + 非root用户 + HEALTHCHECK
 ├── docker-compose.yml           # 生产级编排（volumes + restart + 资源限制）
 ├── LICENSE                      # MIT 开源协议
+├── .gitignore
 └── README.md
 ```
 
