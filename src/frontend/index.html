@@ -235,7 +235,9 @@ async function loadLeaves(){
 
 async function aiApproveLeave(id){
   try{
-    let res=await fetch(API+'/api/agent/approve/auto',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({request_type:'leave',request_id:id,applicant:'',department:'',details:''})});
+    let leave=await fetch(API+'/api/leave/'+id).then(r=>r.json());
+    let details=`${leave.leave_type}，${leave.start_date?leave.start_date.slice(0,10):''}至${leave.end_date?leave.end_date.slice(0,10):''}，${leave.reason}`;
+    let res=await fetch(API+'/api/agent/approve/auto',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({request_type:'leave',request_id:id,applicant:leave.applicant,department:leave.department,details:details})});
     let data=await res.json();
     alert(`AI审批完成！\n风险等级: ${data.risk_level}\n决策: ${data.final_decision}\n理由: ${data.reason}`);
     loadLeaves(); loadDashboard();
@@ -249,7 +251,9 @@ async function aiRejectLeave(id){
 }
 async function aiApproveExpense(id){
   try{
-    let res=await fetch(API+'/api/agent/approve/auto',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({request_type:'expense',request_id:id,applicant:'',department:'',details:''})});
+    let exp=await fetch(API+'/api/expense/'+id).then(r=>r.json());
+    let details=`${exp.category}，¥${exp.amount}，${exp.description}`;
+    let res=await fetch(API+'/api/agent/approve/auto',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({request_type:'expense',request_id:id,applicant:exp.applicant,department:exp.department,details:details})});
     let data=await res.json();
     alert(`AI审批完成！\n风险等级: ${data.risk_level}\n决策: ${data.final_decision}\n理由: ${data.reason}`);
     loadExpenses(); loadDashboard();
