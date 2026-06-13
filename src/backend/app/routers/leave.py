@@ -61,3 +61,13 @@ def get_leave(leave_id: int, db: Session = Depends(get_db)):
     if not leave:
         raise HTTPException(status_code=404, detail="请假申请不存在")
     return leave
+
+
+@router.delete("/{leave_id}")
+def delete_leave(leave_id: int, db: Session = Depends(get_db)):
+    leave = db.query(LeaveRequest).filter(LeaveRequest.id == leave_id).first()
+    if not leave:
+        raise HTTPException(status_code=404, detail="请假申请不存在")
+    db.delete(leave)
+    db.commit()
+    return {"message": "已删除"}
