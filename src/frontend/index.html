@@ -238,8 +238,12 @@ async function loadLeaves(){
 }
 
 async function refreshLeaves(){
-  // 随机生成一条新请假再刷新
-  let names=['张三','李四','王五','赵六','孙七','周八'];
+  // 先获取现有列表，排除已有人员再随机生成
+  let existing=await fetch(API+'/api/leave/').then(r=>r.json());
+  let existingNames=existing.map(l=>l.applicant);
+  let allNames=['张三','李四','王五','赵六','孙七','周八','吴九','郑十','钱十一','陈十二'];
+  let names=allNames.filter(n=>!existingNames.includes(n));
+  if(names.length===0) names=allNames; // 都出现过则全放回去
   let depts=['技术研发部','产品设计部','市场运营部','人力资源部','财务部'];
   let types=['年假','病假','事假','婚假'];
   let reasons=['回老家探亲','身体不适需休息','家中急事处理','参加婚礼','个人事务'];
@@ -348,8 +352,12 @@ async function loadExpenses(){
 }
 
 async function refreshExpenses(){
-  // 随机生成一条新报销再刷新
-  let enames=['张三','李四','王五','赵六','孙七','周八'];
+  // 先获取现有列表，排除已有人员再随机生成
+  let existing=await fetch(API+'/api/expense/').then(r=>r.json());
+  let existingNames=existing.map(e=>e.applicant);
+  let allNames=['张三','李四','王五','赵六','孙七','周八','吴九','郑十','钱十一','陈十二'];
+  let enames=allNames.filter(n=>!existingNames.includes(n));
+  if(enames.length===0) enames=allNames;
   let edepts=['技术研发部','产品设计部','市场运营部','人力资源部','财务部'];
   let ecats=['差旅费','办公用品','业务招待费','培训费','交通费'];
   let edescs=['赴上海参加AI技术峰会差旅','采购开发用显示器及键鼠套装','接待重点客户商务宴请','参加云原生技术培训','市内交通及停车费报销'];
