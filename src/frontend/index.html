@@ -82,7 +82,7 @@ tr:hover{background:#fafbfc;}
 <body>
 <div class="header">
 <h1>AgentBridge</h1>
-<div class="badge">🤖 AI Agent 已就绪</div>
+<div class="badge">🤖 AI Agent 已就绪 v2.1</div>
 </div>
 <div class="container">
 <div class="sidebar">
@@ -228,6 +228,7 @@ async function loadDashboard(){
 
 async function loadLeaves(){
   try{
+    document.getElementById('leaveTable').innerHTML='<p style="color:#1a73e8;">⏳ 加载中...</p>';
     let data=await fetch(API+'/api/leave/').then(r=>r.json());
     let html='<table><tr><th>ID</th><th>申请人</th><th>部门</th><th>类型</th><th>开始</th><th>结束</th><th>原因</th><th>状态</th><th>AI审批</th></tr>';
     data.forEach(l=>{html+=`<tr><td>${l.id}</td><td>${l.applicant}</td><td>${l.department}</td><td>${l.leave_type}</td><td>${l.start_date?l.start_date.slice(0,10):''}</td><td>${l.end_date?l.end_date.slice(0,10):''}</td><td>${l.reason}</td><td><span class="badge-status ${l.status==='待审批'?'badge-pending':l.status==='已通过'?'badge-approved':'badge-rejected'}">${l.status}</span>${l.agent_suggestion?`<br><small>🤖 ${l.agent_suggestion}</small>`:''}</td>${l.status==='待审批'?`<td><div class="approve-btns"><button class="btn-approve" onclick="aiApproveLeave(${l.id})">🤖 AI自动审批</button><button class="btn-approve" onclick="manualApproveLeave(${l.id})">✓ 通过</button><button class="btn-reject" onclick="aiRejectLeave(${l.id})">✕ 拒绝</button></div></td>`:'<td>-</td>'}</tr>`;});
@@ -298,6 +299,7 @@ async function createLeave(){
 
 async function loadExpenses(){
   try{
+    document.getElementById('expenseTable').innerHTML='<p style="color:#1a73e8;">⏳ 加载中...</p>';
     let data=await fetch(API+'/api/expense/').then(r=>r.json());
     let html='<table><tr><th>ID</th><th>申请人</th><th>部门</th><th>类别</th><th>金额</th><th>描述</th><th>状态</th><th>AI审批</th></tr>';
     data.forEach(e=>{html+=`<tr class="${e.anomaly_flag?'anomaly-row':''}"><td>${e.id}</td><td>${e.applicant}</td><td>${e.department}</td><td>${e.category}</td><td>¥${e.amount.toFixed(2)}</td><td>${e.description}</td><td><span class="badge-status ${e.status==='待审批'?'badge-pending':e.status==='已通过'?'badge-approved':'badge-rejected'}">${e.status}</span>${e.anomaly_flag?` <span class="anomaly-badge">异常</span>`:''}</td>${e.status==='待审批'?`<td><div class="approve-btns"><button class="btn-approve" onclick="aiApproveExpense(${e.id})">🤖 AI自动审批</button><button class="btn-approve" onclick="manualApproveExpense(${e.id})">✓ 通过</button><button class="btn-reject" onclick="aiRejectExpense(${e.id})">✕ 拒绝</button></div></td>`:'<td>-</td>'}</tr>`;});
