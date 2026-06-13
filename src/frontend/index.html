@@ -228,7 +228,25 @@ async function loadDashboard(){
 
 async function loadLeaves(){
   try{
-    document.getElementById('leaveTable').innerHTML='<p style="color:#1a73e8;">⏳ 加载中...</p>';
+    document.getElementById('leaveTable').innerHTML='<p style="color:#1a73e8;">⏳ 生成新数据并加载中...</p>';
+    // 自动创建一条新请假
+    let names=['张三','李四','王五','赵六','孙七','周八'];
+    let depts=['技术研发部','产品设计部','市场运营部','人力资源部','财务部'];
+    let types=['年假','病假','事假','婚假'];
+    let reasons=['回老家探亲','身体不适需休息','家中急事处理','参加婚礼','个人事务'];
+    let name=names[Math.floor(Math.random()*names.length)];
+    let dept=depts[Math.floor(Math.random()*depts.length)];
+    let type=types[Math.floor(Math.random()*types.length)];
+    let reason=reasons[Math.floor(Math.random()*reasons.length)];
+    let now=new Date();
+    let start=new Date(now.getTime()+(Math.floor(Math.random()*14)+1)*24*3600000);
+    let end=new Date(start.getTime()+(Math.floor(Math.random()*3)+1)*24*3600000);
+    await fetch(API+'/api/leave/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      applicant:name, department:dept, leave_type:type,
+      start_date:start.toISOString().slice(0,10)+'T08:00:00',
+      end_date:end.toISOString().slice(0,10)+'T18:00:00',
+      reason:reason
+    })});
     let data=await fetch(API+'/api/leave/').then(r=>r.json());
     let html='<table><tr><th>ID</th><th>申请人</th><th>部门</th><th>类型</th><th>开始</th><th>结束</th><th>原因</th><th>状态</th><th>AI审批</th></tr>';
     data.forEach(l=>{html+=`<tr><td>${l.id}</td><td>${l.applicant}</td><td>${l.department}</td><td>${l.leave_type}</td><td>${l.start_date?l.start_date.slice(0,10):''}</td><td>${l.end_date?l.end_date.slice(0,10):''}</td><td>${l.reason}</td><td><span class="badge-status ${l.status==='待审批'?'badge-pending':l.status==='已通过'?'badge-approved':'badge-rejected'}">${l.status}</span>${l.agent_suggestion?`<br><small>🤖 ${l.agent_suggestion}</small>`:''}</td>${l.status==='待审批'?`<td><div class="approve-btns"><button class="btn-approve" onclick="aiApproveLeave(${l.id})">🤖 AI自动审批</button><button class="btn-approve" onclick="manualApproveLeave(${l.id})">✓ 通过</button><button class="btn-reject" onclick="aiRejectLeave(${l.id})">✕ 拒绝</button></div></td>`:'<td>-</td>'}</tr>`;});
@@ -249,7 +267,7 @@ async function aiApproveLeave(id){
 }
 async function aiRejectLeave(id){
   try{
-    let res=await fetch(API+'/api/leave/'+id+'/approve',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:'已拒绝',approver:'AI智能审批',approval_comment:'AI审批不通过'})});
+    let res=await fetch(API+'/api/leave/'+id+'/approve',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:'已驳回',approver:'手动审批',approval_comment:'审批不通过'})});
     if(res.ok){alert('已拒绝该请假申请');loadLeaves();loadDashboard();}
   }catch(e){alert('操作失败');}
 }
@@ -265,7 +283,7 @@ async function aiApproveExpense(id){
 }
 async function aiRejectExpense(id){
   try{
-    let res=await fetch(API+'/api/expense/'+id+'/approve',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:'已拒绝',approver:'AI智能审批',approval_comment:'AI审批不通过'})});
+    let res=await fetch(API+'/api/expense/'+id+'/approve',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:'已驳回',approver:'手动审批',approval_comment:'审批不通过'})});
     if(res.ok){alert('已拒绝该报销申请');loadExpenses();loadDashboard();}
   }catch(e){alert('操作失败');}
 }
@@ -299,7 +317,21 @@ async function createLeave(){
 
 async function loadExpenses(){
   try{
-    document.getElementById('expenseTable').innerHTML='<p style="color:#1a73e8;">⏳ 加载中...</p>';
+    document.getElementById('expenseTable').innerHTML='<p style="color:#1a73e8;">⏳ 生成新数据并加载中...</p>';
+    // 自动创建一条新报销
+    let enames=['张三','李四','王五','赵六','孙七','周八'];
+    let edepts=['技术研发部','产品设计部','市场运营部','人力资源部','财务部'];
+    let ecats=['差旅费','办公用品','业务招待费','培训费','交通费'];
+    let edescs=['赴上海参加AI技术峰会差旅','采购开发用显示器及键鼠套装','接待重点客户商务宴请','参加云原生技术培训','市内交通及停车费报销'];
+    let ename=enames[Math.floor(Math.random()*enames.length)];
+    let edept=edepts[Math.floor(Math.random()*edepts.length)];
+    let ecat=ecats[Math.floor(Math.random()*ecats.length)];
+    let edesc=edescs[Math.floor(Math.random()*edescs.length)];
+    let eamount=(Math.floor(Math.random()*8000)+200)/100*100;
+    await fetch(API+'/api/expense/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      applicant:ename, department:edept, category:ecat,
+      amount:eamount, description:edesc
+    })});
     let data=await fetch(API+'/api/expense/').then(r=>r.json());
     let html='<table><tr><th>ID</th><th>申请人</th><th>部门</th><th>类别</th><th>金额</th><th>描述</th><th>状态</th><th>AI审批</th></tr>';
     data.forEach(e=>{html+=`<tr class="${e.anomaly_flag?'anomaly-row':''}"><td>${e.id}</td><td>${e.applicant}</td><td>${e.department}</td><td>${e.category}</td><td>¥${e.amount.toFixed(2)}</td><td>${e.description}</td><td><span class="badge-status ${e.status==='待审批'?'badge-pending':e.status==='已通过'?'badge-approved':'badge-rejected'}">${e.status}</span>${e.anomaly_flag?` <span class="anomaly-badge">异常</span>`:''}</td>${e.status==='待审批'?`<td><div class="approve-btns"><button class="btn-approve" onclick="aiApproveExpense(${e.id})">🤖 AI自动审批</button><button class="btn-approve" onclick="manualApproveExpense(${e.id})">✓ 通过</button><button class="btn-reject" onclick="aiRejectExpense(${e.id})">✕ 拒绝</button></div></td>`:'<td>-</td>'}</tr>`;});
