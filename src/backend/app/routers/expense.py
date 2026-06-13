@@ -60,3 +60,13 @@ def get_expense(expense_id: int, db: Session = Depends(get_db)):
     if not expense:
         raise HTTPException(status_code=404, detail="报销单不存在")
     return expense
+
+
+@router.delete("/{expense_id}")
+def delete_expense(expense_id: int, db: Session = Depends(get_db)):
+    expense = db.query(ExpenseReport).filter(ExpenseReport.id == expense_id).first()
+    if not expense:
+        raise HTTPException(status_code=404, detail="报销单不存在")
+    db.delete(expense)
+    db.commit()
+    return {"message": "已删除"}

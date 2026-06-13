@@ -105,14 +105,6 @@ def seed_data():
                 description="接待重要客户晚宴",
                 status=ApprovalStatus.PENDING,
             ),
-            ExpenseReport(
-                applicant="张三",
-                department="技术研发部",
-                category="差旅费",
-                amount=8500.00,
-                description="赴深圳参加开发者大会，含机票4500元、住宿4晚2000元、餐饮补贴500元、交通500元、会议注册费1000元",
-                status=ApprovalStatus.PENDING,
-            ),
         ]
         db.add_all(expenses)
 
